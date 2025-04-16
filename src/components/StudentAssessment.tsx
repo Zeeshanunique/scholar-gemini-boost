@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Subject, TestResult } from "@/types";
 
 interface StudentAssessmentProps {
@@ -16,13 +17,28 @@ interface StudentAssessmentProps {
 export const StudentAssessment = ({ onSubmit, isLoading }: StudentAssessmentProps) => {
   const [studentName, setStudentName] = useState("");
   const [subjects, setSubjects] = useState<Subject[]>([
-    { name: "Mathematics", selected: true, minScore: 0, maxScore: 100 },
-    { name: "Science", selected: true, minScore: 0, maxScore: 100 },
-    { name: "Language Arts", selected: true, minScore: 0, maxScore: 100 },
-    { name: "Social Studies", selected: true, minScore: 0, maxScore: 100 },
+    // Core Engineering Subjects
+    { name: "Calculus & Mathematics", selected: true, minScore: 0, maxScore: 100 },
+    { name: "Engineering Physics", selected: true, minScore: 0, maxScore: 100 },
+    { name: "Computer Programming", selected: true, minScore: 0, maxScore: 100 },
+    { name: "Data Structures & Algorithms", selected: true, minScore: 0, maxScore: 100 },
+    { name: "Digital Electronics", selected: true, minScore: 0, maxScore: 100 },
+    { name: "Database Management Systems", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Computer Networks", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Software Engineering", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Operating Systems", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Computer Architecture", selected: false, minScore: 0, maxScore: 100 },
+    // Specialized Engineering Subjects
+    { name: "Artificial Intelligence", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Machine Learning", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Web Development", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Mobile App Development", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Cloud Computing", selected: false, minScore: 0, maxScore: 100 },
+    { name: "Cybersecurity", selected: false, minScore: 0, maxScore: 100 },
   ]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [error, setError] = useState("");
+  const [subjectView, setSubjectView] = useState<"core" | "all">("core");
 
   const handleSubjectToggle = (index: number) => {
     const updatedSubjects = [...subjects];
@@ -73,10 +89,14 @@ export const StudentAssessment = ({ onSubmit, isLoading }: StudentAssessmentProp
     onSubmit(studentName, testResults);
   };
 
+  const displayedSubjects = subjectView === "core" 
+    ? subjects.slice(0, 5) 
+    : subjects;
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle>Student Assessment</CardTitle>
+        <CardTitle>Engineering Student Assessment</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -92,41 +112,54 @@ export const StudentAssessment = ({ onSubmit, isLoading }: StudentAssessmentProp
           
           <Separator />
           
-          <div className="space-y-4">
-            <Label>Subjects</Label>
-            {subjects.map((subject, index) => (
-              <div key={subject.name} className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`subject-${index}`}
-                    checked={subject.selected}
-                    onCheckedChange={() => handleSubjectToggle(index)}
-                  />
-                  <Label htmlFor={`subject-${index}`}>{subject.name}</Label>
-                </div>
-                
-                {subject.selected && (
-                  <div className="pl-6 flex items-center space-x-2">
-                    <Input
-                      type="number"
-                      min={subject.minScore}
-                      max={subject.maxScore}
-                      value={scores[subject.name] || ""}
-                      onChange={e => handleScoreChange(subject.name, e.target.value)}
-                      placeholder="Score"
-                      className="w-20"
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label>Engineering Subjects</Label>
+              <Select 
+                value={subjectView} 
+                onValueChange={(value) => setSubjectView(value as "core" | "all")}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select view" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="core">Core Subjects</SelectItem>
+                  <SelectItem value="all">All Subjects</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              {displayedSubjects.map((subject, index) => (
+                <div key={subject.name} className="space-y-2 border p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`subject-${index}`}
+                      checked={subject.selected}
+                      onCheckedChange={() => handleSubjectToggle(index)}
                     />
-                    <span>out of</span>
-                    <Input
-                      type="number"
-                      value={subject.maxScore}
-                      readOnly
-                      className="w-20 bg-gray-100"
-                    />
+                    <Label htmlFor={`subject-${index}`} className="text-sm font-medium">
+                      {subject.name}
+                    </Label>
                   </div>
-                )}
-              </div>
-            ))}
+                  
+                  {subject.selected && (
+                    <div className="flex items-center space-x-2 pt-2">
+                      <Input
+                        type="number"
+                        min={subject.minScore}
+                        max={subject.maxScore}
+                        value={scores[subject.name] || ""}
+                        onChange={e => handleScoreChange(subject.name, e.target.value)}
+                        placeholder="Score"
+                        className="w-20"
+                      />
+                      <span className="text-sm text-gray-500">/ {subject.maxScore}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
           
           {error && <p className="text-sm text-red-500">{error}</p>}
