@@ -2,23 +2,29 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ApiKeyInput } from "@/components/ApiKeyInput";
-import { StudentAssessment } from "@/components/StudentAssessment";
+import { EnhancedStudentAssessment } from "@/components/EnhancedStudentAssessment";
 import { LearningRecommendations } from "@/components/LearningRecommendations";
+import { TeachingMethodsView } from "@/components/TeachingMethodsView";
 import { getApiKey, generateLearningRecommendations, hasApiKey } from "@/utils/gemini";
-import type { TestResult, LearningRecommendation } from "@/types";
-import { BookOpen, GraduationCap, Settings } from "lucide-react";
+import type { TestResult, LearningRecommendation, BehavioralMetrics } from "@/types";
+import { BookOpen, GraduationCap, Settings, Brain, Sparkles, FileText, Info, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const [apiKeySet, setApiKeySet] = useState(hasApiKey());
-  const [currentStep, setCurrentStep] = useState<'apiKey' | 'assessment' | 'recommendations'>(
+  const [currentStep, setCurrentStep] = useState<'apiKey' | 'assessment' | 'recommendations' | 'teaching-methods'>(
     hasApiKey() ? 'assessment' : 'apiKey'
   );
   const [isLoading, setIsLoading] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [recommendations, setRecommendations] = useState<LearningRecommendation[]>([]);
   const [error, setError] = useState("");
+  const [showTeachingMethods, setShowTeachingMethods] = useState(false);
+  const [teachingMethodsSubject, setTeachingMethodsSubject] = useState("");
+  const [teachingMethodsLearningStyle, setTeachingMethodsLearningStyle] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,28 +48,34 @@ const Index = () => {
     setCurrentStep('assessment');
     toast({
       title: "Ready to Assess",
-      description: "You can now start student assessment",
+      description: "You can now start a comprehensive student assessment",
     });
   };
 
-  const handleAssessmentSubmit = async (name: string, results: TestResult[]) => {
+  const handleAssessmentSubmit = async (
+    name: string, 
+    results: TestResult[], 
+    behavioralMetrics?: BehavioralMetrics, 
+    learningStyle?: string
+  ) => {
     setStudentName(name);
     setIsLoading(true);
     setError("");
     
     toast({
       title: "Processing Assessment",
-      description: "Analyzing data and generating recommendations...",
+      description: "Analyzing data and generating personalized remedial strategies...",
     });
     
     try {
-      const recommendations = await generateLearningRecommendations(name, results);
+      // Using the enhanced Gemini API with behavioral metrics and learning style
+      const recommendations = await generateLearningRecommendations(name, results, behavioralMetrics, learningStyle);
       setRecommendations(recommendations);
       setCurrentStep('recommendations');
       
       toast({
         title: "Analysis Complete",
-        description: "Learning recommendations have been generated successfully",
+        description: "Personalized remedial teaching plan has been generated successfully",
         variant: "default"
       });
     } catch (err) {
@@ -95,6 +107,12 @@ const Index = () => {
   const resetApiKey = () => {
     setApiKeySet(false);
     setCurrentStep('apiKey');
+  };
+
+  const handleViewTeachingMethods = (subject: string, learningStyle: string) => {
+    setTeachingMethodsSubject(subject);
+    setTeachingMethodsLearningStyle(learningStyle);
+    setShowTeachingMethods(true);
   };
 
   return (
@@ -129,51 +147,158 @@ const Index = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center space-y-8">
-          {currentStep === 'apiKey' && (
+        {currentStep === 'apiKey' ? (
+          <div className="flex flex-col items-center space-y-8">
+            <div className="text-center max-w-2xl mb-4">
+              <h2 className="text-2xl font-bold mb-4">AI-Powered Learning Assessment</h2>
+              <p className="text-gray-600">
+                Identify slow learners and provide personalized remedial teaching strategies using advanced AI analysis.
+              </p>
+            </div>
+            
             <ApiKeyInput onKeySet={handleApiKeySet} />
-          )}
-
-          {currentStep === 'assessment' && (
-            <>
-              <div className="text-center max-w-2xl mb-8">
-                <h2 className="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
-                  Student Assessment
-                </h2>
-                <p className="text-gray-600">
-                  Enter the student's name and assessment scores to receive personalized learning recommendations
-                  powered by AI analysis.
-                </p>
+            
+            <div className="w-full max-w-3xl mt-8">
+              <Separator className="my-6" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Brain className="h-5 w-5 text-blue-500" />
+                      Learning Styles
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">
+                      Identifies each student's optimal learning style to tailor teaching methods accordingly.
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-green-500" />
+                      Detailed Assessment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">
+                      Collects comprehensive academic and behavioral data to build a complete student profile.
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-500" />
+                      Remedial Strategies
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">
+                      Generates personalized learning plans with innovative teaching methods for slow learners.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-              
-              <StudentAssessment onSubmit={handleAssessmentSubmit} isLoading={isLoading} />
-              
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mt-4">
-                  {error}
+            </div>
+          </div>
+        ) : currentStep === 'assessment' ? (
+          <div className="flex flex-col items-center space-y-8">
+            <div className="text-center max-w-2xl mb-4">
+              <h2 className="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+                Comprehensive Learning Assessment
+              </h2>
+              <p className="text-gray-600">
+                Enter student information and assessment data to identify learning needs and generate personalized remedial strategies.
+              </p>
+            </div>
+            
+            <EnhancedStudentAssessment onSubmit={handleAssessmentSubmit} isLoading={isLoading} />
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mt-4">
+                <div className="flex items-start">
+                  <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Error Processing Assessment</p>
+                    <p>{error}</p>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-
-          {currentStep === 'recommendations' && (
+              </div>
+            )}
+          </div>
+        ) : currentStep === 'recommendations' ? (
+          <div className="flex flex-col items-center space-y-8">
             <LearningRecommendations
               studentName={studentName}
               recommendations={recommendations}
               onReset={resetAssessment}
+              onViewTeachingMethods={handleViewTeachingMethods}
             />
-          )}
-        </div>
+            
+            <div className="flex justify-center w-full">
+              <Card className="w-full max-w-3xl bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowRight className="h-5 w-5 text-blue-600" />
+                    Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4">To get the most out of this personalized learning plan:</p>
+                  <ol className="list-decimal pl-5 space-y-2">
+                    <li>
+                      <strong>Implement recommended strategies</strong> in sequence, starting with the highest priority areas
+                    </li>
+                    <li>
+                      <strong>Track progress</strong> regularly using the provided practice exercises
+                    </li>
+                    <li>
+                      <strong>Adapt teaching methods</strong> based on student response and engagement
+                    </li>
+                    <li>
+                      <strong>Reassess</strong> after 4-6 weeks to measure improvement and adjust strategies
+                    </li>
+                  </ol>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/dashboard" className="w-full">
+                    <Button className="w-full">
+                      View Teacher Dashboard
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        ) : null}
       </main>
 
       <footer className="bg-white border-t border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
-            Smart Learning Pathways © {new Date().getFullYear()} - Identifying learning needs and providing personalized recommendations
+            Smart Learning Pathways © {new Date().getFullYear()} - Identifying slow learners for remedial teaching and capacity building
           </p>
+          <div className="flex justify-center mt-2 space-x-4 text-sm text-gray-500">
+            <span>Powered by Google Gemini 1.5</span>
+            <span>•</span>
+            <span>AI-Enhanced Learning Analytics</span>
+          </div>
         </div>
       </footer>
+
+      {/* Teaching Methods Dialog */}
+      <TeachingMethodsView 
+        subject={teachingMethodsSubject}
+        learningStyle={teachingMethodsLearningStyle}
+        isOpen={showTeachingMethods}
+        onClose={() => setShowTeachingMethods(false)}
+      />
     </div>
   );
 };

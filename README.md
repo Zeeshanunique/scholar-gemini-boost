@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+# Scholar Gemini Boost - AI-Driven Learning Platform
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/0dbf9f30-c963-49c4-b44d-1cb677c85964
+Scholar Gemini Boost is an innovative educational platform powered by Google's Gemini AI that helps identify slow learners and provides personalized remedial teaching strategies. The platform is designed to support teachers in delivering effective, targeted interventions based on comprehensive student assessments.
 
-## How can I edit this code?
+## Key Features
 
-There are several ways of editing your application.
+### 1. Comprehensive Learning Assessment
+- **Academic Performance Analysis**: Collects and analyzes test scores across subjects
+- **Learning Style Detection**: Identifies each student's preferred learning modality (visual, auditory, kinesthetic, etc.)
+- **Behavioral Metrics Tracking**: Monitors engagement, motivation, attention span, and other behavioral factors
 
-**Use Lovable**
+### 2. AI-Powered Remedial Strategies
+- **Personalized Learning Plans**: Creates tailored remedial approaches for each student
+- **Conceptual Gap Identification**: Pinpoints specific concepts that need reinforcement
+- **Customized Practice Exercises**: Generates targeted practice activities to strengthen weak areas
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0dbf9f30-c963-49c4-b44d-1cb677c85964) and start prompting.
+### 3. Teacher Dashboard & Analytics
+- **Classroom Performance Overview**: Visualizes class-wide performance metrics
+- **At-Risk Student Identification**: Highlights students requiring immediate intervention
+- **Improvement Tracking**: Monitors progress over time with detailed analytics
+- **Effective Intervention Analysis**: Identifies which teaching strategies yield the best results
 
-Changes made via Lovable will be committed automatically to this repo.
+### 4. Innovative Teaching Methods
+- **Learning Style-Based Approaches**: Suggests teaching techniques aligned with student learning preferences
+- **Multi-Sensory Strategies**: Provides resources for varied instruction methods
+- **Engagement Enhancement**: Offers activities to boost student motivation and participation
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Google Gemini API key - [Get a key from Google AI Studio](https://aistudio.google.com/)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Step 1: Clone the repository
+git clone https://github.com/YourUsername/scholar-gemini-boost.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd scholar-gemini-boost
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Create a .env file in the root directory with your Gemini API key
+# Add this line to the .env file:
+VITE_GEMINI_API_KEY=your_api_key_here
+
+# Step 5: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Usage
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. **Enter API Key**: On first use, enter your Google Gemini API key
+2. **Access Assessment**: Enter student data including test scores, behavioral observations, and learning preferences
+3. **Review Recommendations**: Explore personalized remedial strategies and teaching approaches
+4. **Monitor Progress**: Track student improvement over time through the Teacher Dashboard
 
-**Use GitHub Codespaces**
+## Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This project is built with modern web technologies:
 
-## What technologies are used for this project?
+- **Vite**: Next-generation frontend build tool
+- **React**: UI component library
+- **TypeScript**: Type-safe JavaScript
+- **Google Gemini AI**: Advanced AI model for generating personalized learning insights
+- **shadcn-ui**: High-quality UI components
+- **Tailwind CSS**: Utility-first CSS framework
+- **Recharts**: Composable charting library for data visualization
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This application can be deployed to any standard hosting platform that supports Node.js applications, such as:
 
-## How can I deploy this project?
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS Amplify
 
-Simply open [Lovable](https://lovable.dev/projects/0dbf9f30-c963-49c4-b44d-1cb677c85964) and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Lovable project?
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License - see the LICENSE file for details.
