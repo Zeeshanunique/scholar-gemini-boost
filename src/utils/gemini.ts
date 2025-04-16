@@ -2,14 +2,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { TestResult, LearningRecommendation } from "@/types";
 
-// Store API key in state for demo purposes (in production, this should be handled securely on the server)
-let apiKey = "";
+// Use API key from environment variables or allow user input as fallback
+let apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
 export const setApiKey = (key: string) => {
   apiKey = key;
 };
 
 export const getApiKey = () => apiKey;
+
+export const hasApiKey = () => !!apiKey;
 
 export const generateLearningRecommendations = async (
   studentName: string,
@@ -21,7 +23,8 @@ export const generateLearningRecommendations = async (
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Using the gemini-1.5-flash model as specified
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
     As an educational AI assistant, analyze the following test results for student ${studentName}:
@@ -75,5 +78,21 @@ export const generateLearningRecommendations = async (
   } catch (error) {
     console.error("Error generating recommendations:", error);
     throw error;
+  }
+};
+
+// Add a new function to test the API key validity
+export const testApiConnection = async (): Promise<boolean> => {
+  if (!apiKey) return false;
+  
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const result = await model.generateContent("Test connection");
+    return result.response !== undefined;
+  } catch (error) {
+    console.error("API connection test failed:", error);
+    return false;
   }
 };

@@ -1,27 +1,49 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ApiKeyInput } from "@/components/ApiKeyInput";
 import { StudentAssessment } from "@/components/StudentAssessment";
 import { LearningRecommendations } from "@/components/LearningRecommendations";
-import { getApiKey, generateLearningRecommendations } from "@/utils/gemini";
+import { getApiKey, generateLearningRecommendations, hasApiKey } from "@/utils/gemini";
 import type { TestResult, LearningRecommendation } from "@/types";
-import { BookOpen, GraduationCap } from "lucide-react";
+import { BookOpen, GraduationCap, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [apiKeySet, setApiKeySet] = useState(!!getApiKey());
+  const [apiKeySet, setApiKeySet] = useState(hasApiKey());
   const [currentStep, setCurrentStep] = useState<'apiKey' | 'assessment' | 'recommendations'>(
-    getApiKey() ? 'assessment' : 'apiKey'
+    hasApiKey() ? 'assessment' : 'apiKey'
   );
   const [isLoading, setIsLoading] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [recommendations, setRecommendations] = useState<LearningRecommendation[]>([]);
   const [error, setError] = useState("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if API key is set in localStorage from a previous session
+    const storedAPIKey = localStorage.getItem("gemini_api_key");
+    if (storedAPIKey && !hasApiKey()) {
+      try {
+        toast({
+          title: "API Key Restored",
+          description: "Using previously saved API key",
+          variant: "default"
+        });
+      } catch (error) {
+        console.error("Error restoring API key:", error);
+      }
+    }
+  }, [toast]);
 
   const handleApiKeySet = () => {
     setApiKeySet(true);
     setCurrentStep('assessment');
+    toast({
+      title: "Ready to Assess",
+      description: "You can now start student assessment",
+    });
   };
 
   const handleAssessmentSubmit = async (name: string, results: TestResult[]) => {
@@ -29,13 +51,31 @@ const Index = () => {
     setIsLoading(true);
     setError("");
     
+    toast({
+      title: "Processing Assessment",
+      description: "Analyzing data and generating recommendations...",
+    });
+    
     try {
       const recommendations = await generateLearningRecommendations(name, results);
       setRecommendations(recommendations);
       setCurrentStep('recommendations');
+      
+      toast({
+        title: "Analysis Complete",
+        description: "Learning recommendations have been generated successfully",
+        variant: "default"
+      });
     } catch (err) {
       console.error("Error generating recommendations:", err);
-      setError(err instanceof Error ? err.message : "Failed to generate recommendations");
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate recommendations";
+      setError(errorMessage);
+      
+      toast({
+        title: "Analysis Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +85,16 @@ const Index = () => {
     setStudentName("");
     setRecommendations([]);
     setCurrentStep('assessment');
+    
+    toast({
+      title: "Assessment Reset",
+      description: "Start a new student assessment",
+    });
+  };
+
+  const resetApiKey = () => {
+    setApiKeySet(false);
+    setCurrentStep('apiKey');
   };
 
   return (
@@ -57,7 +107,7 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-gray-900">Smart Learning Pathways</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">Powered by Google Gemini</div>
+              <div className="text-sm text-gray-500">Powered by Google Gemini 1.5</div>
               <Link to="/">
                 <Button variant="ghost">Home</Button>
               </Link>
@@ -67,6 +117,12 @@ const Index = () => {
               <Link to="/about">
                 <Button variant="ghost">About</Button>
               </Link>
+              {apiKeySet && (
+                <Button variant="outline" size="sm" onClick={resetApiKey}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  API Settings
+                </Button>
+              )}
             </div>
           </div>
         </div>
