@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { TestResult, LearningRecommendation, LearningStyleQuestion, TeachingMethod, PerformanceAnalytics, Student, BehavioralMetrics } from "@/types";
 
@@ -25,10 +24,6 @@ export const generateLearningRecommendations = async (
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // Using the gemini-1.5-flash model as specified
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     // Create detailed sections of the prompt
     const testResultsText = testResults.map(result => 
       `Subject: ${result.subject}
@@ -103,9 +98,25 @@ export const generateLearningRecommendations = async (
     
     Only include subjects where improvement is needed (below 75%). Ensure the response is valid JSON without any comments or additional text.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Use the proxy endpoint instead of direct API call
+    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -133,9 +144,6 @@ export const generateLearningStyleQuiz = async (): Promise<LearningStyleQuestion
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `
     Create a learning style assessment quiz with 10 questions. Each question should have 5 options, each corresponding to a different learning style: Visual, Auditory, Reading/Writing, Kinesthetic, and Multimodal.
     
@@ -156,9 +164,25 @@ export const generateLearningStyleQuiz = async (): Promise<LearningStyleQuestion
     
     Make the questions diverse, covering different learning scenarios, and ensure they're appropriate for students of all ages. Keep the language simple and clear. Ensure the response is valid JSON.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Use the proxy endpoint instead of direct API call
+    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -188,9 +212,6 @@ export const generateTeachingMethods = async (
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `
     As an educational expert, generate 5 innovative teaching methods specifically designed for ${learningStyle} learners studying ${subject}.
     
@@ -218,9 +239,25 @@ export const generateTeachingMethods = async (
     
     Ensure these methods are evidence-based, practical to implement in a classroom setting, and specifically address the needs of slower learners who may benefit from remedial approaches. These methods should build confidence, reduce learning anxiety, and create engaging learning experiences.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Use the proxy endpoint instead of direct API call
+    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -253,9 +290,6 @@ export const generatePerformanceAnalytics = async (
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     // Prepare student data for the prompt
     const testResultsText = student.testResults.map(result => 
       `Subject: ${result.subject}, Score: ${result.score}/${result.totalPossible}, Percentage: ${Math.round((result.score / result.totalPossible) * 100)}%`
@@ -318,9 +352,25 @@ export const generatePerformanceAnalytics = async (
 
     Ensure all numerical values are realistic and based on the provided data. If there's insufficient data for any metric, provide a reasonable estimate based on similar student profiles.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Use the proxy endpoint instead of direct API call
+    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -341,17 +391,38 @@ export const generatePerformanceAnalytics = async (
 };
 
 // Add a new function to test the API key validity
-export const testApiConnection = async (): Promise<boolean> => {
-  if (!apiKey) return false;
+export const testApiConnection = async (): Promise<{ success: boolean; message?: string }> => {
+  if (!apiKey) {
+    return { success: false, message: "API key is not set" };
+  }
   
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Use the proxy endpoint instead of direct API call
+    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: "Test connection" }] }]
+      })
+    });
     
-    const result = await model.generateContent("Test connection");
-    return result.response !== undefined;
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { 
+        success: false, 
+        message: `Connection failed: ${errorData.error?.message || response.statusText}` 
+      };
+    }
+    
+    return { success: true };
   } catch (error) {
     console.error("API connection test failed:", error);
-    return false;
+    return { 
+      success: false, 
+      message: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    };
   }
 };

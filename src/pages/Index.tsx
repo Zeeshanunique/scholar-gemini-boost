@@ -135,12 +135,12 @@ const Index = () => {
               <Link to="/about">
                 <Button variant="ghost">About</Button>
               </Link>
-              {apiKeySet && (
+              {/* {apiKeySet && (
                 <Button variant="outline" size="sm" onClick={resetApiKey}>
                   <Settings className="h-4 w-4 mr-2" />
                   API Settings
                 </Button>
-              )}
+              )} */}
             </div>
           </div>
         </div>
