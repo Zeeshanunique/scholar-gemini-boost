@@ -21,7 +21,7 @@ import type { Student, ClassAnalytics, TeachingMethod, BehavioralMetrics, Progre
 const mockStudents: Student[] = [
   { 
     id: "1", 
-    name: "Alice Smith", 
+    name: "zeeshan", 
     grade: "10",
     age: 16,
     learningStyle: "Visual",

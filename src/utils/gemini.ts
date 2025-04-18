@@ -13,6 +13,21 @@ export const getApiKey = () => apiKey;
 
 export const hasApiKey = () => !!apiKey;
 
+// Helper function to determine the API endpoint to use
+const getApiEndpoint = (model: string): string => {
+  // Check if running in production (like Vercel)
+  const isProduction = import.meta.env.PROD;
+  
+  if (isProduction) {
+    // In production, use the Vercel API route
+    return `/api/generateContent?model=${model}`;
+  } else {
+    // In development, use the Vite dev server proxy
+    return `/gemini-api/v1beta/models/${model}:generateContent`;
+  }
+};
+
+// Generate learning recommendations based on student performance
 export const generateLearningRecommendations = async (
   studentName: string,
   testResults: TestResult[],
@@ -98,8 +113,12 @@ export const generateLearningRecommendations = async (
     
     Only include subjects where improvement is needed (below 75%). Ensure the response is valid JSON without any comments or additional text.`;
 
-    // Use the proxy endpoint instead of direct API call
-    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+    // Use the appropriate API endpoint based on environment
+    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    
+    console.log(`Using API endpoint: ${apiEndpoint}`);
+    
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -164,8 +183,12 @@ export const generateLearningStyleQuiz = async (): Promise<LearningStyleQuestion
     
     Make the questions diverse, covering different learning scenarios, and ensure they're appropriate for students of all ages. Keep the language simple and clear. Ensure the response is valid JSON.`;
 
-    // Use the proxy endpoint instead of direct API call
-    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+    // Use the appropriate API endpoint based on environment
+    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    
+    console.log(`Using API endpoint: ${apiEndpoint}`);
+    
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -239,8 +262,12 @@ export const generateTeachingMethods = async (
     
     Ensure these methods are evidence-based, practical to implement in a classroom setting, and specifically address the needs of slower learners who may benefit from remedial approaches. These methods should build confidence, reduce learning anxiety, and create engaging learning experiences.`;
 
-    // Use the proxy endpoint instead of direct API call
-    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+    // Use the appropriate API endpoint based on environment
+    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    
+    console.log(`Using API endpoint: ${apiEndpoint}`);
+    
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -352,8 +379,12 @@ export const generatePerformanceAnalytics = async (
 
     Ensure all numerical values are realistic and based on the provided data. If there's insufficient data for any metric, provide a reasonable estimate based on similar student profiles.`;
 
-    // Use the proxy endpoint instead of direct API call
-    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+    // Use the appropriate API endpoint based on environment
+    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    
+    console.log(`Using API endpoint: ${apiEndpoint}`);
+    
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -397,8 +428,12 @@ export const testApiConnection = async (): Promise<{ success: boolean; message?:
   }
   
   try {
-    // Use the proxy endpoint instead of direct API call
-    const response = await fetch('/gemini-api/v1beta/models/gemini-1.5-flash:generateContent', {
+    // Use the appropriate API endpoint based on environment
+    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    
+    console.log(`Using API endpoint: ${apiEndpoint}`);
+    
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
