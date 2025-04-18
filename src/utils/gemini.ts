@@ -13,20 +13,6 @@ export const getApiKey = () => apiKey;
 
 export const hasApiKey = () => !!apiKey;
 
-// Helper function to determine the API endpoint to use
-const getApiEndpoint = (model: string): string => {
-  // Check if running in production (like Vercel)
-  const isProduction = import.meta.env.PROD;
-  
-  if (isProduction) {
-    // In production, use the Vercel API route
-    return `/api/generateContent?model=${model}`;
-  } else {
-    // In development, use the Vite dev server proxy
-    return `/gemini-api/v1beta/models/${model}:generateContent`;
-  }
-};
-
 // Generate learning recommendations based on student performance
 export const generateLearningRecommendations = async (
   studentName: string,
@@ -113,29 +99,15 @@ export const generateLearningRecommendations = async (
     
     Only include subjects where improvement is needed (below 75%). Ensure the response is valid JSON without any comments or additional text.`;
 
-    // Use the appropriate API endpoint based on environment
-    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
-    
-    console.log(`Using API endpoint: ${apiEndpoint}`);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+    // Initialize the Gemini API client
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
-    }
-
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
+    // Generate content using the Gemini API directly
+    const result = await model.generateContent(prompt);
+    
+    const response = await result.response;
+    const text = await response.text();
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -183,29 +155,15 @@ export const generateLearningStyleQuiz = async (): Promise<LearningStyleQuestion
     
     Make the questions diverse, covering different learning scenarios, and ensure they're appropriate for students of all ages. Keep the language simple and clear. Ensure the response is valid JSON.`;
 
-    // Use the appropriate API endpoint based on environment
-    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
-    
-    console.log(`Using API endpoint: ${apiEndpoint}`);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+    // Initialize the Gemini API client
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
-    }
-
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
+    // Generate content using the Gemini API directly
+    const result = await model.generateContent(prompt);
+    
+    const response = await result.response;
+    const text = await response.text();
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -262,29 +220,15 @@ export const generateTeachingMethods = async (
     
     Ensure these methods are evidence-based, practical to implement in a classroom setting, and specifically address the needs of slower learners who may benefit from remedial approaches. These methods should build confidence, reduce learning anxiety, and create engaging learning experiences.`;
 
-    // Use the appropriate API endpoint based on environment
-    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
-    
-    console.log(`Using API endpoint: ${apiEndpoint}`);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+    // Initialize the Gemini API client
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
-    }
-
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
+    // Generate content using the Gemini API directly
+    const result = await model.generateContent(prompt);
+    
+    const response = await result.response;
+    const text = await response.text();
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -379,29 +323,15 @@ export const generatePerformanceAnalytics = async (
 
     Ensure all numerical values are realistic and based on the provided data. If there's insufficient data for any metric, provide a reasonable estimate based on similar student profiles.`;
 
-    // Use the appropriate API endpoint based on environment
-    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
-    
-    console.log(`Using API endpoint: ${apiEndpoint}`);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+    // Initialize the Gemini API client
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API request failed: ${JSON.stringify(errorData)}`);
-    }
-
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
+    // Generate content using the Gemini API directly
+    const result = await model.generateContent(prompt);
+    
+    const response = await result.response;
+    const text = await response.text();
     
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -428,30 +358,14 @@ export const testApiConnection = async (): Promise<{ success: boolean; message?:
   }
   
   try {
-    // Use the appropriate API endpoint based on environment
-    const apiEndpoint = getApiEndpoint('gemini-1.5-flash');
+    // Initialize the Gemini API client
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Generate a simple test content
+    const result = await model.generateContent("Test connection");
     
-    console.log(`Using API endpoint: ${apiEndpoint}`);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: "Test connection" }] }]
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      return { 
-        success: false, 
-        message: `Connection failed: ${errorData.error?.message || response.statusText}` 
-      };
-    }
-    
+    // If we get here without an error, the connection is successful
     return { success: true };
   } catch (error) {
     console.error("API connection test failed:", error);
