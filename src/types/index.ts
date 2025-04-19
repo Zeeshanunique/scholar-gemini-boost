@@ -113,11 +113,14 @@ export interface TeachingMethod {
   id: string;
   name: string;
   description: string;
-  suitableFor: string[]; // Learning styles this method works well for
-  implementationSteps: string[];
+  steps: string[]; // Implementation steps
   resources: string[];
+  benefits: string[]; // Benefits of this teaching method
   effectiveness: number; // Scale 1-10
   timeRequired: number; // Minutes per session
+  subject: string; // Subject this method is for
+  learningStyle: string; // Learning style this method is designed for
+  isGeneral?: boolean; // Whether this is a general method applicable to many subjects
 }
 
 // Analytics Types

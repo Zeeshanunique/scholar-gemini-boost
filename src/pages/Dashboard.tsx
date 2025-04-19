@@ -9,13 +9,21 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { 
   GraduationCap, Users, BarChart3, BookMarked, Lightbulb, School, Brain, UserPlus, 
-  Search, AlertTriangle, Film, BookOpen, Mic, Clock, Award, Heart, Calendar
+  Search, AlertTriangle, Film, BookOpen, Mic, Clock, Award, Heart, Calendar, Loader2, Database
 } from "lucide-react";
 import { TeacherDashboard } from "@/components/TeacherDashboard";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { TeachingMethodsView } from "@/components/TeachingMethodsView";
 import { EnhancedStudentAssessment } from "@/components/EnhancedStudentAssessment";
-import { loadStudents, saveStudents, generateId, loadAnalytics, saveAnalytics, updateAnalytics } from "@/utils/storage";
+import { 
+  loadStudents, 
+  saveStudent, 
+  updateStudent, 
+  loadAnalytics, 
+  saveAnalytics, 
+  updateAnalytics,
+  populateSampleData
+} from "@/utils/firestore";
 import type { Student, ClassAnalytics, TeachingMethod, BehavioralMetrics, ProgressMetrics, Milestone, TestResult } from "@/types";
 
 const Dashboard = () => {
@@ -48,22 +56,43 @@ const Dashboard = () => {
   const [teachingMethodsLearningStyle, setTeachingMethodsLearningStyle] = useState("");
   const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
   const [isAssessing, setIsAssessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showPopulateDialog, setShowPopulateDialog] = useState(false);
+  const [isPopulating, setIsPopulating] = useState(false);
   const { toast } = useToast();
 
   // Load students and analytics on component mount
   useEffect(() => {
-    const savedStudents = loadStudents();
-    setStudents(savedStudents);
-    
-    const savedAnalytics = loadAnalytics();
-    if (savedAnalytics) {
-      setClassAnalytics(savedAnalytics);
-    } else if (savedStudents.length > 0) {
-      const newAnalytics = updateAnalytics(savedStudents);
-      setClassAnalytics(newAnalytics);
-      saveAnalytics(newAnalytics);
-    }
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Load students from Firestore
+        const fetchedStudents = await loadStudents();
+        setStudents(fetchedStudents);
+        
+        // Load or calculate analytics
+        const fetchedAnalytics = await loadAnalytics();
+        if (fetchedAnalytics) {
+          setClassAnalytics(fetchedAnalytics);
+        } else if (fetchedStudents.length > 0) {
+          const newAnalytics = updateAnalytics(fetchedStudents);
+          setClassAnalytics(newAnalytics);
+          await saveAnalytics(newAnalytics);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load data from database",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
 
   // Filter students based on search query
   const filteredStudents = students.filter(student => 
@@ -90,55 +119,140 @@ const Dashboard = () => {
     setShowTeachingMethods(true);
   };
   
-  const handleAddStudentComplete = (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => {
-    // Create a new student object
-    const newStudent: Student = {
-      id: generateId(),
-      name,
-      testResults: results,
-      learningStyle: learningStyle || undefined,
-    };
-    
-    if (behavioralMetrics) {
-      newStudent.behavioralMetrics = behavioralMetrics;
-    }
-    
-    // Calculate progress metrics based on test results
-    if (results.length > 0) {
-      const latestScore = results[0].score;
-      const totalPossible = results[0].totalPossible;
-      
-      newStudent.progressMetrics = {
-        startDate: new Date().toISOString(),
-        currentDate: new Date().toISOString(),
-        initialScore: latestScore,
-        currentScore: latestScore,
-        improvementRate: 0,
-        consistencyScore: 5,
-        milestones: []
-      };
-    }
-    
-    // Add the new student to the list
-    const updatedStudents = [...students, newStudent];
-    setStudents(updatedStudents);
-    saveStudents(updatedStudents);
-    
-    // Update analytics
-    const newAnalytics = updateAnalytics(updatedStudents);
-    setClassAnalytics(newAnalytics);
-    saveAnalytics(newAnalytics);
-    
-    // Hide the assessment dialog and show success message
-    setIsAssessing(false);
-    setShowAddStudentDialog(false);
-    
-    toast({
-      title: "Student Added",
-      description: `${name} has been successfully added to your class.`,
-      variant: "default"
-    });
+  const handleStudentSearch = (query: string) => {
+    setSearchQuery(query);
   };
+  
+  const handleAddStudentComplete = async (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => {
+    setIsAssessing(true);
+    
+    try {
+      // Create a new student object
+      const newStudent: Omit<Student, 'id'> = {
+        name,
+        testResults: results,
+        learningStyle: learningStyle || undefined,
+      };
+      
+      if (behavioralMetrics) {
+        newStudent.behavioralMetrics = behavioralMetrics;
+      }
+      
+      // Calculate progress metrics based on test results
+      if (results.length > 0) {
+        const latestScore = results[0].score;
+        const totalPossible = results[0].totalPossible;
+        
+        newStudent.progressMetrics = {
+          startDate: new Date().toISOString(),
+          currentDate: new Date().toISOString(),
+          initialScore: latestScore,
+          currentScore: latestScore,
+          improvementRate: 0,
+          consistencyScore: 5,
+          milestones: []
+        };
+      }
+      
+      // Add the new student to Firestore
+      const studentId = await saveStudent(newStudent);
+      
+      // Add the new student to the local state
+      const studentWithId = { ...newStudent, id: studentId };
+      const updatedStudents = [...students, studentWithId];
+      setStudents(updatedStudents);
+      
+      // Update analytics
+      const newAnalytics = updateAnalytics(updatedStudents);
+      setClassAnalytics(newAnalytics);
+      await saveAnalytics(newAnalytics);
+      
+      // Hide the assessment dialog and show success message
+      toast({
+        title: "Student Added",
+        description: `${name} has been successfully added to your class.`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error adding student:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add student to database",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAssessing(false);
+      setShowAddStudentDialog(false);
+    }
+  };
+  
+  const handlePopulateData = async () => {
+    setIsPopulating(true);
+    
+    try {
+      await populateSampleData(10);
+      
+      // Reload data after population
+      const fetchedStudents = await loadStudents();
+      setStudents(fetchedStudents);
+      
+      const fetchedAnalytics = await loadAnalytics();
+      if (fetchedAnalytics) {
+        setClassAnalytics(fetchedAnalytics);
+      }
+      
+      toast({
+        title: "Sample Data Added",
+        description: "10 sample students have been added to the database",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error populating data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to populate sample data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPopulating(false);
+      setShowPopulateDialog(false);
+    }
+  };
+
+  const handleSubjectAnalysisUpdate = async () => {
+    try {
+      // Fetch the latest data to ensure we have current analytics
+      const fetchedStudents = await loadStudents();
+      const newAnalytics = updateAnalytics(fetchedStudents);
+      setClassAnalytics(newAnalytics);
+      await saveAnalytics(newAnalytics);
+      
+      toast({
+        title: "Analysis Updated",
+        description: "Subject analysis has been updated with the latest data",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error updating subject analysis:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update subject analysis",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-600 mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Loading Dashboard</h2>
+          <p className="text-gray-600">Fetching data from the database...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -180,7 +294,7 @@ const Dashboard = () => {
                 placeholder="Search students..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleStudentSearch(e.target.value)}
               />
             </div>
             <Button 
@@ -190,6 +304,15 @@ const Dashboard = () => {
               <UserPlus className="h-4 w-4 mr-2" />
               Add Student
             </Button>
+            {students.length === 0 && (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPopulateDialog(true)}
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Populate Data
+              </Button>
+            )}
           </div>
         </div>
 
@@ -295,7 +418,7 @@ const Dashboard = () => {
                   {filteredStudents.length > 0 ? (
                     <div className="rounded-md border">
                       <div className="grid grid-cols-12 p-4 bg-gray-100 text-sm font-medium">
-                        <div className="col-span-1">#</div>
+                        {/* <div className="col-span-1">#</div> */}
                         <div className="col-span-3">Name</div>
                         <div className="col-span-2">Grade</div>
                         <div className="col-span-2">Learning Style</div>
@@ -313,7 +436,7 @@ const Dashboard = () => {
                               index !== filteredStudents.length - 1 ? "border-b" : ""
                             }`}
                           >
-                            <div className="col-span-1 font-medium">{student.id}</div>
+                            {/* <div className="col-span-1 font-medium">{student.id}</div> */}
                             <div className="col-span-3">{student.name}</div>
                             <div className="col-span-2">{student.grade || "-"}</div>
                             <div className="col-span-2">
@@ -358,7 +481,7 @@ const Dashboard = () => {
                         <Button 
                           className="mt-4" 
                           variant="outline"
-                          onClick={() => setSearchQuery("")}
+                          onClick={() => handleStudentSearch("")}
                         >
                           Clear Search
                         </Button>
@@ -524,6 +647,80 @@ const Dashboard = () => {
               onCancel={() => setShowAddStudentDialog(false)}
               isLoading={isAssessing}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog for Populating Sample Data */}
+        <Dialog open={showPopulateDialog} onOpenChange={setShowPopulateDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Populate Sample Data</DialogTitle>
+              <DialogDescription>
+                Add 10 sample students to your class for demonstration purposes
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-4">
+              <p className="mb-4 text-sm text-gray-600">
+                This will create 10 sample students with randomized data in your database.
+                This is useful for testing and demonstration purposes.
+              </p>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPopulateDialog(false)}
+                  className="flex-1"
+                  disabled={isPopulating}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handlePopulateData}
+                  className="flex-1"
+                  disabled={isPopulating}
+                >
+                  {isPopulating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Populating...
+                    </>
+                  ) : (
+                    <>Populate Data</>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog for Updating Subject Analysis */}
+        <Dialog open={false} onOpenChange={() => {}}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Update Subject Analysis</DialogTitle>
+              <DialogDescription>
+                Update the subject analysis with the latest data
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-4">
+              <p className="mb-4 text-sm text-gray-600">
+                This will update the subject analysis with the latest data from the database.
+              </p>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {}}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSubjectAnalysisUpdate}
+                  className="flex-1"
+                >
+                  Update Analysis
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </main>

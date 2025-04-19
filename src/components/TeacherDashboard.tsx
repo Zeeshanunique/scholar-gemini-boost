@@ -244,7 +244,8 @@ export const TeacherDashboard = ({ analytics, students, onViewStudentDetails }: 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
+                  <TableHead className="min-w-[40px] w-[40px] text-center">#</TableHead>
+                  <TableHead className="min-w-[140px] w-[180px]">Name</TableHead>
                   <TableHead>Risk Level</TableHead>
                   <TableHead>Learning Style</TableHead>
                   <TableHead>Improvement</TableHead>
@@ -253,75 +254,67 @@ export const TeacherDashboard = ({ analytics, students, onViewStudentDetails }: 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.map(student => {
-                  const riskLevel = getRiskLevel(student);
-                  
-                  return (
-                    <TableRow key={student.id}>
-                      <TableCell>
-                        <div className="font-medium">{student.name}</div>
-                        {student.grade && (
-                          <div className="text-sm text-gray-500">Grade {student.grade}</div>
-                        )}
-                      </TableCell>
-                      <TableCell>{getRiskBadge(riskLevel)}</TableCell>
-                      <TableCell>
-                        {student.learningStyle ? (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                            {student.learningStyle}
-                          </Badge>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not assessed</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {student.progressMetrics ? (
-                          <div className="flex items-center gap-1">
-                            <span className={getImprovementColor(student.progressMetrics.improvementRate)}>
-                              {student.progressMetrics.improvementRate > 0 && '+'}
-                              {student.progressMetrics.improvementRate}%
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">No data</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {student.testResults.slice(0, 2).map((test, index) => {
-                            const percentage = Math.round((test.score / test.totalPossible) * 100);
-                            return (
-                              <Badge 
-                                key={index} 
-                                variant="outline"
-                                className={`text-xs ${
-                                  percentage >= 70 
-                                    ? "bg-green-100 text-green-800" 
-                                    : percentage >= 50 
-                                      ? "bg-yellow-100 text-yellow-800" 
-                                      : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {test.subject.split(' ')[0]}: {percentage}%
-                              </Badge>
-                            );
-                          })}
-                          {student.testResults.length > 2 && (
-                            <Badge variant="outline">+{student.testResults.length - 2} more</Badge>
-                          )}
+                {filteredStudents.map((student, i) => (
+                  <TableRow key={student.id}>
+                    <TableCell className="text-center font-semibold">{i + 1}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">{student.name}</TableCell>
+                    <TableCell>{getRiskBadge(getRiskLevel(student))}</TableCell>
+                    <TableCell>
+                      {student.learningStyle ? (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                          {student.learningStyle}
+                        </Badge>
+                      ) : (
+                        <span className="text-sm text-gray-500">Not assessed</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {student.progressMetrics ? (
+                        <div className="flex items-center gap-1">
+                          <span className={getImprovementColor(student.progressMetrics.improvementRate)}>
+                            {student.progressMetrics.improvementRate > 0 && '+'}
+                            {student.progressMetrics.improvementRate}%
+                          </span>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          size="sm" 
-                          onClick={() => onViewStudentDetails(student.id)}
-                        >
-                          View Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      ) : (
+                        <span className="text-sm text-gray-500">No data</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {student.testResults.slice(0, 2).map((test, index) => {
+                          const percentage = Math.round((test.score / test.totalPossible) * 100);
+                          return (
+                            <Badge 
+                              key={index} 
+                              variant="outline"
+                              className={`text-xs ${
+                                percentage >= 70 
+                                  ? "bg-green-100 text-green-800" 
+                                  : percentage >= 50 
+                                    ? "bg-yellow-100 text-yellow-800" 
+                                    : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {test.subject.split(' ')[0]}: {percentage}%
+                            </Badge>
+                          );
+                        })}
+                        {student.testResults.length > 2 && (
+                          <Badge variant="outline">+{student.testResults.length - 2} more</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        size="sm" 
+                        onClick={() => onViewStudentDetails(student.id)}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
                 
                 {filteredStudents.length === 0 && (
                   <TableRow>

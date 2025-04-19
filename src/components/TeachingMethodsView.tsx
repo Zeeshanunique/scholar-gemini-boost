@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles, Clock, Star, List, Scroll, CheckSquare, AlertCircle } from "lucide-react";
-import { generateTeachingMethods } from "@/utils/gemini";
+import { getTeachingMethods } from "@/utils/firestore";
 import type { TeachingMethod } from "@/types";
 
 interface TeachingMethodsViewProps {
@@ -30,11 +30,13 @@ export const TeachingMethodsView = ({ subject, learningStyle, isOpen, onClose }:
       try {
         setLoading(true);
         setError("");
-        const teachingMethods = await generateTeachingMethods(learningStyle, subject);
+        
+        // Fetch teaching methods from Firestore
+        const teachingMethods = await getTeachingMethods(subject, learningStyle);
         setMethods(teachingMethods);
       } catch (err) {
         console.error("Error fetching teaching methods:", err);
-        setError("Failed to generate teaching methods. Please try again.");
+        setError("Failed to load teaching methods. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -104,71 +106,56 @@ export const TeachingMethodsView = ({ subject, learningStyle, isOpen, onClose }:
                       Effectiveness: {method.effectiveness}/10
                     </Badge>
                   </div>
-
-                  <div className="text-sm space-y-1 bg-blue-50 p-4 rounded-md border border-blue-100">
-                    <h3 className="font-medium">Suitable for:</h3>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {method.suitableFor.map((style, i) => (
-                        <Badge key={i} variant="secondary" className="bg-blue-100">
-                          {style}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="description">
-                      <AccordionTrigger className="font-medium flex items-center gap-2">
-                        <Scroll className="h-4 w-4 text-blue-500" />
-                        Method Description
-                      </AccordionTrigger>
-                      <AccordionContent className="text-sm space-y-2">
-                        <p>{method.description}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="implementation">
-                      <AccordionTrigger className="font-medium flex items-center gap-2">
-                        <CheckSquare className="h-4 w-4 text-green-500" />
-                        Implementation Steps
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <ol className="list-decimal pl-5 space-y-2 text-sm">
-                          {method.implementationSteps.map((step, i) => (
-                            <li key={i}>{step}</li>
+                
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">{method.name}</CardTitle>
+                      <CardDescription>{method.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
+                          <List className="h-4 w-4 text-blue-500" /> Implementation Steps
+                        </h4>
+                        <ol className="space-y-1 ml-5 list-decimal">
+                          {method.steps.map((step, i) => (
+                            <li key={i} className="text-sm">{step}</li>
                           ))}
                         </ol>
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="resources">
-                      <AccordionTrigger className="font-medium flex items-center gap-2">
-                        <List className="h-4 w-4 text-purple-500" />
-                        Required Resources
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
+                          <Scroll className="h-4 w-4 text-blue-500" /> Required Resources
+                        </h4>
+                        <ul className="space-y-1 ml-5 list-disc">
                           {method.resources.map((resource, i) => (
-                            <li key={i}>{resource}</li>
+                            <li key={i} className="text-sm">{resource}</li>
                           ))}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
+                          <CheckSquare className="h-4 w-4 text-blue-500" /> Benefits
+                        </h4>
+                        <ul className="space-y-1 ml-5 list-disc">
+                          {method.benefits.map((benefit, i) => (
+                            <li key={i} className="text-sm">{benefit}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
               ))}
             </Tabs>
           </div>
         )}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-          <Button onClick={() => window.print()}>
-            Print Methods
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
