@@ -13,11 +13,18 @@ import { BehavioralMetricsInput } from "@/components/BehavioralMetricsInput";
 import type { Subject, TestResult, BehavioralMetrics } from "@/types";
 
 interface EnhancedStudentAssessmentProps {
-  onSubmit: (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => void;
-  isLoading: boolean;
+  onSubmit?: (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => void;
+  onComplete?: (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => void;
+  onCancel?: () => void;
+  isLoading?: boolean;
 }
 
-export const EnhancedStudentAssessment = ({ onSubmit, isLoading }: EnhancedStudentAssessmentProps) => {
+export const EnhancedStudentAssessment = ({ 
+  onSubmit, 
+  onComplete,
+  onCancel,
+  isLoading = false 
+}: EnhancedStudentAssessmentProps) => {
   const [currentStep, setCurrentStep] = useState<"basic" | "learning-style" | "behavioral">("basic");
   const [studentName, setStudentName] = useState("");
   const [studentGrade, setStudentGrade] = useState("");
@@ -100,8 +107,8 @@ export const EnhancedStudentAssessment = ({ onSubmit, isLoading }: EnhancedStude
   };
 
   const handleMistakePatternChange = (subjectName: string, value: string) => {
-    const patterns = value.split(',').map(p => p.trim()).filter(p => p !== '');
-    setMistakePatterns({ ...mistakePatterns, [subjectName]: patterns });
+    // No need to split by commas as we want to preserve spaces and commas
+    setMistakePatterns({ ...mistakePatterns, [subjectName]: [value] });
   };
 
   const handleBasicInfoSubmit = () => {
@@ -172,7 +179,11 @@ export const EnhancedStudentAssessment = ({ onSubmit, isLoading }: EnhancedStude
       return result;
     });
 
-    onSubmit(studentName, testResults, behavioralMetrics || undefined, learningStyle);
+    if (onComplete) {
+      onComplete(studentName, testResults, behavioralMetrics || undefined, learningStyle);
+    } else if (onSubmit) {
+      onSubmit(studentName, testResults, behavioralMetrics || undefined, learningStyle);
+    }
   };
 
   const displayedSubjects = subjectView === "core" 
@@ -237,14 +248,19 @@ export const EnhancedStudentAssessment = ({ onSubmit, isLoading }: EnhancedStude
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="studentAge">Age</Label>
+              <Label htmlFor="studentAge">Age (15-40)</Label>
               <Input
                 id="studentAge"
                 type="number"
+                min="15"
+                max="40"
                 value={studentAge}
                 onChange={e => setStudentAge(e.target.value)}
-                placeholder="Student's age"
+                placeholder="Student's age (15-40)"
               />
+              {studentAge && (parseInt(studentAge) < 15 || parseInt(studentAge) > 40) && (
+                <p className="text-xs text-red-500 mt-1">Age must be between 15 and 40</p>
+              )}
             </div>
           </TabsContent>
 
@@ -363,9 +379,16 @@ export const EnhancedStudentAssessment = ({ onSubmit, isLoading }: EnhancedStude
         {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
       </CardContent>
       <CardFooter>
-        <Button onClick={handleBasicInfoSubmit} disabled={isLoading} className="w-full">
-          {isLoading ? "Processing..." : "Continue to Learning Style Assessment"}
-        </Button>
+        <div className="flex w-full gap-2">
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel} className="flex-1">
+              Cancel
+            </Button>
+          )}
+          <Button onClick={handleBasicInfoSubmit} disabled={isLoading} className="flex-1">
+            {isLoading ? "Processing..." : "Continue to Learning Style Assessment"}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

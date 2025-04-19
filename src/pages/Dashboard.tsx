@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,186 +14,65 @@ import {
 import { TeacherDashboard } from "@/components/TeacherDashboard";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { TeachingMethodsView } from "@/components/TeachingMethodsView";
-import type { Student, ClassAnalytics, TeachingMethod, BehavioralMetrics, ProgressMetrics, Milestone } from "@/types";
-
-// Enhanced mock data for demonstration purposes
-const mockStudents: Student[] = [
-  { 
-    id: "1", 
-    name: "zeeshan", 
-    grade: "10",
-    age: 16,
-    learningStyle: "Visual",
-    testResults: [
-      { subject: "Mathematics", score: 58, totalPossible: 100, attemptDate: "2025-03-15T10:00:00", timeSpent: 45, mistakePatterns: ["Calculation errors", "Conceptual misunderstanding"] },
-      { subject: "Physics", score: 62, totalPossible: 100, attemptDate: "2025-03-10T14:30:00", timeSpent: 50 },
-      { subject: "Mathematics", score: 65, totalPossible: 100, attemptDate: "2025-04-05T09:15:00", timeSpent: 40 },
-    ],
-    behavioralMetrics: {
-      classParticipation: 4,
-      homeworkCompletion: 70,
-      attentionSpan: 25,
-      peerCollaboration: 6,
-      frustrationTolerance: 3,
-      motivationLevel: 5,
-      anxietyLevel: 7,
-      notes: "Shows potential but gets frustrated with complex problems"
-    },
-    progressMetrics: {
-      startDate: "2025-03-01T00:00:00",
-      currentDate: "2025-04-16T00:00:00",
-      initialScore: 55,
-      currentScore: 65,
-      improvementRate: 10,
-      consistencyScore: 6,
-      milestones: [
-        { title: "Basic Algebra Mastery", targetDate: "2025-04-30T00:00:00", description: "Complete all basic algebra exercises with 80% accuracy", isAchieved: false },
-        { title: "Regular Homework Completion", targetDate: "2025-03-31T00:00:00", achievedDate: "2025-04-02T00:00:00", description: "Submit all homework for 4 consecutive weeks", isAchieved: true }
-      ]
-    },
-    learningHistory: [
-      { date: "2025-03-05T00:00:00", activity: "Initial assessment", duration: 60, engagementLevel: 5, completionStatus: "Completed" },
-      { date: "2025-03-15T00:00:00", activity: "Visual learning workshop", duration: 120, engagementLevel: 8, completionStatus: "Completed" },
-      { date: "2025-04-01T00:00:00", activity: "One-on-one tutoring", duration: 90, engagementLevel: 7, completionStatus: "Completed" }
-    ]
-  },
-  { 
-    id: "2", 
-    name: "Bob Johnson", 
-    grade: "10",
-    learningStyle: "Kinesthetic",
-    testResults: [
-      { subject: "Language Arts", score: 78, totalPossible: 100, attemptDate: "2025-03-20T11:30:00", timeSpent: 55 },
-      { subject: "History", score: 72, totalPossible: 100, attemptDate: "2025-03-18T13:45:00", timeSpent: 60 },
-      { subject: "Language Arts", score: 82, totalPossible: 100, attemptDate: "2025-04-10T10:00:00", timeSpent: 50 }
-    ],
-    progressMetrics: {
-      startDate: "2025-03-01T00:00:00",
-      currentDate: "2025-04-16T00:00:00",
-      initialScore: 75,
-      currentScore: 82,
-      improvementRate: 7,
-      consistencyScore: 8,
-      milestones: [
-        { title: "Essay Structure Mastery", targetDate: "2025-04-15T00:00:00", achievedDate: "2025-04-12T00:00:00", description: "Write properly structured essays with clear thesis and supporting arguments", isAchieved: true },
-      ]
-    }
-  },
-  { 
-    id: "3", 
-    name: "Carol Williams", 
-    grade: "11",
-    age: 17,
-    learningStyle: "Auditory",
-    testResults: [
-      { subject: "Science", score: 65, totalPossible: 100, attemptDate: "2025-03-22T09:00:00", timeSpent: 50, mistakePatterns: ["Lab procedure errors"] },
-      { subject: "Social Studies", score: 70, totalPossible: 100, attemptDate: "2025-03-25T14:00:00", timeSpent: 45 },
-      { subject: "Science", score: 75, totalPossible: 100, attemptDate: "2025-04-12T09:30:00", timeSpent: 55 }
-    ],
-    behavioralMetrics: {
-      classParticipation: 7,
-      homeworkCompletion: 85,
-      attentionSpan: 35,
-      peerCollaboration: 8,
-      frustrationTolerance: 6,
-      motivationLevel: 7,
-      anxietyLevel: 4,
-      notes: "Responds well to verbal instructions and discussions"
-    },
-    progressMetrics: {
-      startDate: "2025-03-01T00:00:00",
-      currentDate: "2025-04-16T00:00:00",
-      initialScore: 65,
-      currentScore: 75,
-      improvementRate: 10,
-      consistencyScore: 7,
-      milestones: []
-    }
-  },
-  { 
-    id: "4", 
-    name: "David Brown", 
-    grade: "9",
-    learningStyle: "Reading/Writing",
-    testResults: [
-      { subject: "Mathematics", score: 52, totalPossible: 100, attemptDate: "2025-03-14T10:30:00", timeSpent: 60, mistakePatterns: ["Algebraic manipulations", "Word problems", "Formula application"] },
-      { subject: "Computer Science", score: 68, totalPossible: 100, attemptDate: "2025-03-16T13:00:00", timeSpent: 55 },
-      { subject: "Mathematics", score: 59, totalPossible: 100, attemptDate: "2025-04-08T10:00:00", timeSpent: 65 }
-    ],
-    behavioralMetrics: {
-      classParticipation: 3,
-      homeworkCompletion: 60,
-      attentionSpan: 20,
-      peerCollaboration: 4,
-      frustrationTolerance: 4,
-      motivationLevel: 5,
-      anxietyLevel: 8,
-      notes: "Struggles with math anxiety, prefers working alone"
-    }
-  },
-  { 
-    id: "5", 
-    name: "Eva Martinez", 
-    grade: "12",
-    age: 18,
-    learningStyle: "Multimodal",
-    testResults: [
-      { subject: "Language Arts", score: 88, totalPossible: 100, attemptDate: "2025-03-18T11:00:00", timeSpent: 40 },
-      { subject: "Social Studies", score: 92, totalPossible: 100, attemptDate: "2025-03-21T14:30:00", timeSpent: 45 },
-      { subject: "Language Arts", score: 91, totalPossible: 100, attemptDate: "2025-04-11T10:30:00", timeSpent: 35 }
-    ],
-    progressMetrics: {
-      startDate: "2025-03-01T00:00:00",
-      currentDate: "2025-04-16T00:00:00",
-      initialScore: 85,
-      currentScore: 91,
-      improvementRate: 6,
-      consistencyScore: 9,
-      milestones: [
-        { title: "Advanced Literature Analysis", targetDate: "2025-04-10T00:00:00", achievedDate: "2025-04-08T00:00:00", description: "Complete literary analysis with sophisticated thematic understanding", isAchieved: true },
-        { title: "Research Paper Excellence", targetDate: "2025-05-15T00:00:00", description: "Complete research paper with proper citations and structured argument", isAchieved: false }
-      ]
-    }
-  },
-];
-
-const mockClassAnalytics: ClassAnalytics = {
-  totalStudents: 42,
-  slowLearnerPercentage: 28,
-  averageImprovement: 8.5,
-  mostChallengedSubjects: ["Mathematics", "Physics", "Chemistry"],
-  mostEffectiveInterventions: [
-    "Concept Mapping for Visual Learners",
-    "Spaced Repetition Practice",
-    "Peer-Led Tutorial Groups",
-    "Multimedia Learning Resources"
-  ],
-  recommendedTeachingApproaches: [
-    "Implement visual aids and diagrams for mathematical concepts",
-    "Break complex problems into smaller, manageable steps",
-    "Provide immediate feedback on practice problems",
-    "Use real-world applications to demonstrate abstract concepts",
-    "Create supportive learning environments that reduce math anxiety"
-  ]
-};
+import { EnhancedStudentAssessment } from "@/components/EnhancedStudentAssessment";
+import { loadStudents, saveStudents, generateId, loadAnalytics, saveAnalytics, updateAnalytics } from "@/utils/storage";
+import type { Student, ClassAnalytics, TeachingMethod, BehavioralMetrics, ProgressMetrics, Milestone, TestResult } from "@/types";
 
 const Dashboard = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [classAnalytics, setClassAnalytics] = useState<ClassAnalytics>({
+    totalStudents: 0,
+    slowLearnerPercentage: 0,
+    averageImprovement: 0,
+    mostChallengedSubjects: [],
+    mostEffectiveInterventions: [
+      "Concept Mapping for Visual Learners",
+      "Spaced Repetition Practice",
+      "Peer-Led Tutorial Groups",
+      "Multimedia Learning Resources"
+    ],
+    recommendedTeachingApproaches: [
+      "Implement visual aids and diagrams for mathematical concepts",
+      "Break complex problems into smaller, manageable steps",
+      "Provide immediate feedback on practice problems",
+      "Use real-world applications to demonstrate abstract concepts",
+      "Create supportive learning environments that reduce math anxiety"
+    ]
+  });
+  
   const [activeTab, setActiveTab] = useState<"overview" | "students" | "teaching-methods">("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showTeachingMethods, setShowTeachingMethods] = useState(false);
   const [teachingMethodsSubject, setTeachingMethodsSubject] = useState("");
   const [teachingMethodsLearningStyle, setTeachingMethodsLearningStyle] = useState("");
+  const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
+  const [isAssessing, setIsAssessing] = useState(false);
   const { toast } = useToast();
 
+  // Load students and analytics on component mount
+  useEffect(() => {
+    const savedStudents = loadStudents();
+    setStudents(savedStudents);
+    
+    const savedAnalytics = loadAnalytics();
+    if (savedAnalytics) {
+      setClassAnalytics(savedAnalytics);
+    } else if (savedStudents.length > 0) {
+      const newAnalytics = updateAnalytics(savedStudents);
+      setClassAnalytics(newAnalytics);
+      saveAnalytics(newAnalytics);
+    }
+  }, []);
+
   // Filter students based on search query
-  const filteredStudents = mockStudents.filter(student => 
+  const filteredStudents = students.filter(student => 
     student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (student.grade && student.grade.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleViewStudentDetails = (studentId: string) => {
-    const student = mockStudents.find(s => s.id === studentId);
+    const student = students.find(s => s.id === studentId);
     if (student) {
       setSelectedStudent(student);
     } else {
@@ -210,6 +88,56 @@ const Dashboard = () => {
     setTeachingMethodsSubject(subject);
     setTeachingMethodsLearningStyle(learningStyle);
     setShowTeachingMethods(true);
+  };
+  
+  const handleAddStudentComplete = (name: string, results: TestResult[], behavioralMetrics?: BehavioralMetrics, learningStyle?: string) => {
+    // Create a new student object
+    const newStudent: Student = {
+      id: generateId(),
+      name,
+      testResults: results,
+      learningStyle: learningStyle || undefined,
+    };
+    
+    if (behavioralMetrics) {
+      newStudent.behavioralMetrics = behavioralMetrics;
+    }
+    
+    // Calculate progress metrics based on test results
+    if (results.length > 0) {
+      const latestScore = results[0].score;
+      const totalPossible = results[0].totalPossible;
+      
+      newStudent.progressMetrics = {
+        startDate: new Date().toISOString(),
+        currentDate: new Date().toISOString(),
+        initialScore: latestScore,
+        currentScore: latestScore,
+        improvementRate: 0,
+        consistencyScore: 5,
+        milestones: []
+      };
+    }
+    
+    // Add the new student to the list
+    const updatedStudents = [...students, newStudent];
+    setStudents(updatedStudents);
+    saveStudents(updatedStudents);
+    
+    // Update analytics
+    const newAnalytics = updateAnalytics(updatedStudents);
+    setClassAnalytics(newAnalytics);
+    saveAnalytics(newAnalytics);
+    
+    // Hide the assessment dialog and show success message
+    setIsAssessing(false);
+    setShowAddStudentDialog(false);
+    
+    toast({
+      title: "Student Added",
+      description: `${name} has been successfully added to your class.`,
+      variant: "default"
+    });
   };
 
   return (
@@ -257,13 +185,7 @@ const Dashboard = () => {
             </div>
             <Button 
               variant="outline" 
-              onClick={() => {
-                setSelectedStudent(null); 
-                toast({
-                  title: "Coming Soon",
-                  description: "Student registration feature will be available soon."
-                });
-              }}
+              onClick={() => setShowAddStudentDialog(true)}
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Add Student
@@ -290,8 +212,8 @@ const Dashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Main Teacher Dashboard */}
             <TeacherDashboard 
-              analytics={mockClassAnalytics}
-              students={mockStudents}
+              analytics={classAnalytics}
+              students={students}
               onViewStudentDetails={handleViewStudentDetails}
             />
           </TabsContent>
@@ -587,35 +509,37 @@ const Dashboard = () => {
           isOpen={showTeachingMethods}
           onClose={() => setShowTeachingMethods(false)}
         />
+
+        {/* Dialog for Adding Student */}
+        <Dialog open={showAddStudentDialog} onOpenChange={setShowAddStudentDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Student</DialogTitle>
+              <DialogDescription>
+                Complete the assessment to add a new student to your class
+              </DialogDescription>
+            </DialogHeader>
+            <EnhancedStudentAssessment 
+              onComplete={handleAddStudentComplete} 
+              onCancel={() => setShowAddStudentDialog(false)}
+              isLoading={isAssessing}
+            />
+          </DialogContent>
+        </Dialog>
       </main>
 
       <footer className="bg-white border-t border-gray-200 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
-            Smart Learning Pathways © {new Date().getFullYear()} - Identifying slow learners for remedial teaching and capacity building
+            Smart Learning Pathways &copy; {new Date().getFullYear()} - Identifying slow learners for remedial teaching and capacity building
           </p>
           <div className="flex justify-center mt-2 space-x-4 text-sm text-gray-500">
             <span>Powered by Google Gemini 1.5</span>
-            <span>•</span>
+            <span>&bull;</span>
             <span>AI-Enhanced Learning Analytics</span>
           </div>
         </div>
       </footer>
-
-      {/* Student Details Dialog - Future Enhancement */}
-      <Dialog open={false} onOpenChange={() => {}}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Student Learning Profile</DialogTitle>
-            <DialogDescription>
-              Detailed assessment and personalized learning plan
-            </DialogDescription>
-          </DialogHeader>
-          <div>
-            {/* This will be implemented in future updates */}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
